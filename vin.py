@@ -6,8 +6,7 @@ INSERT_MODE = 1
 
 class ViWin:
     def __init__(self, vi):
-        self.scrolltop_x = 0
-        self.scrolltop_y = 0
+        self.scrolltop = 0
         self.cursor_x = 0
         self.cursor_y = 0
         self.vi = vi
@@ -20,13 +19,38 @@ class ViWin:
         key = gStdScr.getch()
         
         if key == ord('j'):
+            maxy = curses.LINES
             self.cursor_y = self.cursor_y + 1
+            
+            if self.cursor_y > self.scrolltop + maxy-1:
+                self.scrolltop = self.scrolltop + 1
+                self.cursor_y = self.cursor_y -1
+            
+            if self.cursor_y + self.scrolltop >= len(self.texts):
+                self.cursor_y = self.cursor_y - 1
+                
         elif key == ord('k'):
             self.cursor_y = self.cursor_y - 1
+            
+            if self.cursor_y < 0:
+                self.scrolltop = self.scrolltop -1
+                self.cursor_y = 0
+                
+                if self.scrolltop < 0:
+                    self.scrolltop = 0
+            
         elif key == ord('l'):
             self.cursor_x = self.cursor_x + 1
+            
+            line = self.texts[self.scrolltop+self.cursor_y]
+            
+            if self.cursor_x >= len(line):
+                self.cursor_x = self.cursor_x - 1
         elif key == ord('h'):
             self.cursor_x = self.cursor_x - 1
+            
+            if self.cursor_x < 0:
+                self.cursor_x = 0
         elif key == ord('q'):
             gAppEnd = True
         elif key == ord('i'):
@@ -40,9 +64,9 @@ class ViWin:
         else:
             str = "" + chr(key)
             
-            if self.scrolltop_y + self.cursor_y < len(self.texts):
-                line = self.texts[self.scrolltop_y + self.cursor_y]
-                self.texts[self.scrolltop_y + self.cursor_y] = line + str
+            if self.scrolltop + self.cursor_y < len(self.texts):
+                line = self.texts[self.scrolltop + self.cursor_y]
+                self.texts[self.scrolltop + self.cursor_y] = line + str
             else:
                 self.texts.append(str)
         
@@ -50,7 +74,7 @@ class ViWin:
         maxy = curses.LINES
         gStdScr.clear()
         i = 0
-        top = self.scrolltop_y
+        top = self.scrolltop
         for line in self.texts[top:top+maxy]:
             if i == self.cursor_y:
                 gStdScr.addstr(i, 0, line[0:self.cursor_x])

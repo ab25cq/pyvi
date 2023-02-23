@@ -1,1 +1,2 @@
-python3 vi.py
+python3 vin.py
+reset
